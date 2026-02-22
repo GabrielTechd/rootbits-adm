@@ -1,19 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Send } from 'lucide-react';
+import { MessageModal } from '@/components/MessageModal';
 import { chamados as apiChamados, type Chamado } from '@/lib/api';
 
 export default function ChamadoDetalhePage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [loading, setLoading] = useState(true);
   const [novoComentario, setNovoComentario] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [mensagemModal, setMensagemModal] = useState<{ open: boolean; title: string; message: string; variant: 'error' | 'success' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -37,7 +43,12 @@ export default function ChamadoDetalhePage() {
       setChamado(c);
       setNovoComentario('');
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erro ao enviar');
+      setMensagemModal({
+        open: true,
+        title: 'Erro',
+        message: e instanceof Error ? e.message : 'Erro ao enviar',
+        variant: 'error',
+      });
     } finally {
       setEnviando(false);
     }
@@ -129,6 +140,14 @@ export default function ChamadoDetalhePage() {
           </button>
         </div>
       </div>
+
+      <MessageModal
+        open={mensagemModal.open}
+        title={mensagemModal.title}
+        message={mensagemModal.message}
+        variant={mensagemModal.variant}
+        onClose={() => setMensagemModal((m) => ({ ...m, open: false }))}
+      />
     </div>
   );
 }

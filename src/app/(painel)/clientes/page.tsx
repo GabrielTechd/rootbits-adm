@@ -63,6 +63,7 @@ const emptyForm: Partial<Cliente> = {
 const STATUS_FALLBACK = ['prospect', 'proposta_enviada', 'negociacao', 'fechado', 'perdido', 'ativo', 'encerrado', 'inativo'];
 const FORMAS_FALLBACK = ['a_vista', 'parcelado_2x', 'parcelado_3x', 'parcelado_6x', 'parcelado_12x', 'mensalidade', 'combinado', 'outro'];
 const ORIGENS_FALLBACK = ['indicacao', 'google', 'instagram', 'facebook', 'linkedin', 'site', 'whatsapp', 'telefone', 'email', 'evento', 'outro'];
+const CONFIRMAR_EXCLUSAO = 'EXCLUIR';
 
 export default function ClientesPage() {
   const { can } = useAuth();
@@ -75,6 +76,9 @@ export default function ClientesPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [filtro, setFiltro] = useState({ busca: '', status: '', tipoSite: '', origemLead: '' });
   const [modal, setModal] = useState<{ open: boolean; cliente?: Cliente }>({ open: false });
+  const [modalExcluir, setModalExcluir] = useState<{ open: boolean; cliente: Cliente | null }>({ open: false, cliente: null });
+  const [confirmacaoExcluir, setConfirmacaoExcluir] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
   const [etapa, setEtapa] = useState(1);
   const TOTAL_ETAPAS = 5;
   const [form, setForm] = useState<Partial<Cliente>>(emptyForm);
@@ -179,13 +183,29 @@ export default function ClientesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Excluir este cliente?')) return;
+  const openExcluir = (cliente: Cliente) => {
+    setModalExcluir({ open: true, cliente });
+    setConfirmacaoExcluir('');
+    setError('');
+  };
+
+  const closeExcluir = () => {
+    setModalExcluir({ open: false, cliente: null });
+    setConfirmacaoExcluir('');
+  };
+
+  const handleExcluir = async () => {
+    if (!modalExcluir.cliente || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO) return;
+    setExcluindo(true);
+    setError('');
     try {
-      await apiClientes.delete(id);
-      setList((prev) => prev.filter((c) => c._id !== id));
+      await apiClientes.delete(modalExcluir.cliente._id);
+      setList((prev) => prev.filter((c) => c._id !== modalExcluir.cliente!._id));
+      closeExcluir();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erro ao excluir');
+      setError(e instanceof Error ? e.message : 'Erro ao excluir');
+    } finally {
+      setExcluindo(false);
     }
   };
 
@@ -298,7 +318,7 @@ export default function ClientesPage() {
                             <Pencil className="h-4 w-4" />
                           </button>
                           {canDelete && (
-                            <button type="button" onClick={() => handleDelete(c._id)} className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600" title="Excluir">
+                            <button type="button" onClick={() => openExcluir(c)} className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600" title="Excluir">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           )}
@@ -593,6 +613,51 @@ export default function ClientesPage() {
                   <button type="button" onClick={save} disabled={saving} className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--primary-hover)] disabled:opacity-60">{saving ? 'Salvando...' : 'Salvar'}</button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalExcluir.open && modalExcluir.cliente && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-slate-800">Excluir cliente</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Tem certeza que deseja excluir <strong>{modalExcluir.cliente.nome}</strong>
+              {modalExcluir.cliente.nomeEmpresa && <> ({modalExcluir.cliente.nomeEmpresa})</>}? Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Digite <strong>EXCLUIR</strong> para confirmar
+              </label>
+              <input
+                type="text"
+                value={confirmacaoExcluir}
+                onChange={(e) => setConfirmacaoExcluir(e.target.value)}
+                placeholder="EXCLUIR"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                autoComplete="off"
+              />
+            </div>
+            {error && (
+              <div className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
+            )}
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeExcluir}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExcluir}
+                disabled={excluindo || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {excluindo ? 'Excluindo...' : 'Excluir'}
+              </button>
             </div>
           </div>
         </div>
