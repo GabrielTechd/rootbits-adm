@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { User, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { MessageModal } from '@/components/MessageModal';
+import { UserAvatarNome } from '@/components/UserAvatarNome';
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -95,7 +96,10 @@ export default function PerfilPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold text-slate-800">Meu perfil</h1>
+      <div className="flex flex-wrap items-center gap-4">
+        <h1 className="text-2xl font-bold text-slate-800">Meu perfil</h1>
+        <UserAvatarNome nome={usuario.nome} avatar={usuario.avatar} size="md" />
+      </div>
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-800">Foto de perfil</h2>

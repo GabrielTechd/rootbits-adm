@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, ExternalLink, Headphones } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { chamados as apiChamados, type Chamado } from '@/lib/api';
+import { UserAvatarNome } from '@/components/UserAvatarNome';
+import { chamados as apiChamados, type Chamado, type Usuario } from '@/lib/api';
 
 export default function ChamadosPage() {
   const { can } = useAuth();
@@ -49,10 +50,10 @@ export default function ChamadosPage() {
     typeof c.cliente === 'object' && c.cliente && 'nome' in c.cliente
       ? (c.cliente as { nome: string }).nome
       : '—';
-  const responsavelNome = (c: Chamado) =>
+  const responsavel = (c: Chamado): Usuario | null =>
     typeof c.responsavel === 'object' && c.responsavel && 'nome' in c.responsavel
-      ? (c.responsavel as { nome: string }).nome
-      : '—';
+      ? (c.responsavel as Usuario)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -102,31 +103,40 @@ export default function ChamadosPage() {
                 </tr>
               </thead>
               <tbody>
-                {list.map((c) => (
-                  <tr key={c._id} className="border-b border-[var(--border)] hover:bg-slate-50/50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Headphones className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-slate-800">{c.titulo}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{clienteNome(c)}</td>
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700">{c.status}</span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{c.prioridade || '—'}</td>
-                    <td className="px-6 py-4 text-slate-600">{responsavelNome(c)}</td>
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/chamados/${c._id}`}
-                        className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                        title="Ver"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {list.map((c) => {
+                  const resp = responsavel(c);
+                  return (
+                    <tr key={c._id} className="border-b border-[var(--border)] hover:bg-slate-50/50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Headphones className="h-4 w-4 text-slate-400" />
+                          <span className="font-medium text-slate-800">{c.titulo}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{clienteNome(c)}</td>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700">{c.status}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{c.prioridade || '—'}</td>
+                      <td className="px-6 py-4">
+                        {resp ? (
+                          <UserAvatarNome nome={resp.nome} avatar={resp.avatar} size="sm" />
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/chamados/${c._id}`}
+                          className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                          title="Ver"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

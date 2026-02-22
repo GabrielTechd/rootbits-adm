@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Send } from 'lucide-react';
 import { MessageModal } from '@/components/MessageModal';
-import { chamados as apiChamados, type Chamado } from '@/lib/api';
+import { UserAvatarNome } from '@/components/UserAvatarNome';
+import { chamados as apiChamados, type Chamado, type Usuario } from '@/lib/api';
 
 export default function ChamadoDetalhePage() {
   const params = useParams();
@@ -74,9 +75,9 @@ export default function ChamadoDetalhePage() {
   const clienteNome = typeof chamado.cliente === 'object' && chamado.cliente && 'nome' in chamado.cliente
     ? (chamado.cliente as { nome: string }).nome
     : '—';
-  const responsavelNome = typeof chamado.responsavel === 'object' && chamado.responsavel && 'nome' in chamado.responsavel
-    ? (chamado.responsavel as { nome: string }).nome
-    : '—';
+  const responsavel = typeof chamado.responsavel === 'object' && chamado.responsavel && 'nome' in chamado.responsavel
+    ? (chamado.responsavel as Usuario)
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -97,7 +98,14 @@ export default function ChamadoDetalhePage() {
                 <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-amber-800">{chamado.prioridade}</span>
               )}
               <span>Cliente: {clienteNome}</span>
-              <span>Responsável: {responsavelNome}</span>
+              <span className="flex items-center gap-2">
+                Responsável:{' '}
+                {responsavel ? (
+                  <UserAvatarNome nome={responsavel.nome} avatar={responsavel.avatar} size="sm" />
+                ) : (
+                  '—'
+                )}
+              </span>
             </div>
           </div>
         </div>
@@ -109,18 +117,24 @@ export default function ChamadoDetalhePage() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-800">Comentários</h2>
         <ul className="mt-4 space-y-4">
-          {(chamado.comentarios ?? []).map((com, i) => (
-            <li key={i} className="rounded-lg border border-[var(--border)] bg-slate-50/50 p-4">
-              <p className="text-sm text-slate-700">{com.texto}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                {typeof com.autor === 'object' && com.autor && 'nome' in com.autor
-                  ? (com.autor as { nome: string }).nome
-                  : '—'}
-                {' · '}
-                {com.createdAt ? new Date(com.createdAt).toLocaleString('pt-BR') : ''}
-              </p>
-            </li>
-          ))}
+          {(chamado.comentarios ?? []).map((com, i) => {
+            const autor = typeof com.autor === 'object' && com.autor && 'nome' in com.autor ? (com.autor as Usuario) : null;
+            return (
+              <li key={i} className="rounded-lg border border-[var(--border)] bg-slate-50/50 p-4">
+                <p className="text-sm text-slate-700">{com.texto}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+                  {autor ? (
+                    <UserAvatarNome nome={autor.nome} avatar={autor.avatar} size="sm" />
+                  ) : (
+                    <span>—</span>
+                  )}
+                  {com.createdAt && (
+                    <span>{new Date(com.createdAt).toLocaleString('pt-BR')}</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
         <div className="mt-4 flex gap-2">
           <textarea

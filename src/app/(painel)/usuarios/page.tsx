@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, UserCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { PasswordInput } from '@/components/PasswordInput';
+import { UserAvatarNome } from '@/components/UserAvatarNome';
 import { usuarios as apiUsuarios, type Usuario, type Role } from '@/lib/api';
 
 const CONFIRMAR_EXCLUSAO = 'EXCLUIR';
@@ -180,14 +181,7 @@ export default function UsuariosPage() {
                 {list.map((u) => (
                   <tr key={u._id} className="border-b border-[var(--border)] hover:bg-slate-50/50">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {u.avatar ? (
-                          <img src={u.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
-                        ) : (
-                          <UserCircle className="h-9 w-9 text-slate-400" />
-                        )}
-                        <span className="font-medium text-slate-800">{u.nome}</span>
-                      </div>
+                      <UserAvatarNome nome={u.nome} avatar={u.avatar} size="sm" />
                     </td>
                     <td className="px-6 py-4 text-slate-600">{u.email}</td>
                     <td className="px-6 py-4">
@@ -314,8 +308,11 @@ export default function UsuariosPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-slate-800">Excluir usuário</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Tem certeza que deseja excluir <strong>{modalExcluir.usuario.nome}</strong> ({modalExcluir.usuario.email})? Esta ação não pode ser desfeita.
+            <div className="mt-3">
+              <UserAvatarNome nome={modalExcluir.usuario.nome} avatar={modalExcluir.usuario.avatar} size="sm" />
+            </div>
+            <p className="mt-3 text-sm text-slate-600">
+              Tem certeza que deseja excluir este usuário ({modalExcluir.usuario.email})? Esta ação não pode ser desfeita.
             </p>
             <div className="mt-4">
               <label className="block text-sm font-medium text-slate-700">
