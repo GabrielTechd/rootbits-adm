@@ -88,7 +88,6 @@ export function Sidebar() {
               <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm">
                 <span className="text-slate-500">Olá,</span>
                 <span className="truncate font-semibold text-slate-800">{usuario.nome}</span>
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">{usuario.role}</span>
               </p>
             )}
           </div>
