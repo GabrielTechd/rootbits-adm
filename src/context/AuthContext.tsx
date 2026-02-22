@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, senha: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
+  updateProfile: (data: { nome?: string; avatar?: string | null }) => Promise<void>;
   can: (roles: Role[]) => boolean;
 }
 
@@ -73,8 +74,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return roles.includes(usuario.role);
   };
 
+  const updateProfile = async (data: { nome?: string; avatar?: string | null }) => {
+    const u = await auth.updateMe(data);
+    setUsuario(u);
+    if (typeof window !== 'undefined') localStorage.setItem('usuario', JSON.stringify(u));
+  };
+
   return (
-    <AuthContext.Provider value={{ usuario, loading, login, logout, refresh: loadUser, can }}>
+    <AuthContext.Provider value={{ usuario, loading, login, logout, refresh: loadUser, updateProfile, can }}>
       {children}
     </AuthContext.Provider>
   );

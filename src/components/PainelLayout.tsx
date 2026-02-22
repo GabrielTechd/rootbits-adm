@@ -117,6 +117,7 @@ export function PainelLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-6">
           <div className="text-sm text-slate-600">
             {pathname === '/dashboard' && 'Dashboard'}
+            {pathname === '/perfil' && 'Meu perfil'}
             {pathname.startsWith('/usuarios') && 'Usuários'}
             {pathname.startsWith('/posts') && 'Projetos / Posts'}
             {pathname.startsWith('/clientes') && 'Clientes'}

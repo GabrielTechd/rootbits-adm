@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  User,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { type Role } from '@/lib/api';
@@ -79,16 +80,36 @@ export function Sidebar() {
           })}
         </ul>
       </nav>
-      <div className={`border-t border-[var(--sidebar-border)] bg-[var(--sidebar-bg)] p-3 ${collapsed ? 'flex justify-center' : ''}`}>
+      <div className={`border-t border-[var(--sidebar-border)] bg-[var(--sidebar-bg)] p-3 ${collapsed ? 'flex flex-col items-center gap-2' : ''}`}>
         {usuario && (
-          <div className={`mb-2 shrink-0 ${collapsed ? 'text-center' : ''}`}>
-            {collapsed ? (
-              <p className="truncate text-xs font-medium text-slate-700" title={usuario.nome}>{usuario.nome.split(' ')[0]}</p>
+          <div className={`mb-2 shrink-0 ${collapsed ? 'flex justify-center' : 'flex items-center gap-3'}`}>
+            {usuario.avatar ? (
+              <img
+                src={usuario.avatar}
+                alt={usuario.nome}
+                className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+              />
             ) : (
-              <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm">
-                <span className="text-slate-500">Olá,</span>
-                <span className="truncate font-semibold text-slate-800">{usuario.nome}</span>
-              </p>
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600 ring-2 ring-white shadow-sm"
+                aria-hidden
+              >
+                {usuario.nome?.trim() ? usuario.nome.split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase() : <User className="h-5 w-5" />}
+              </div>
+            )}
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm">
+                  <span className="text-slate-500">Olá,</span>
+                  <span className="truncate font-semibold text-slate-800">{usuario.nome}</span>
+                </p>
+                <Link
+                  href="/perfil"
+                  className="mt-0.5 inline-block text-xs font-medium text-sky-600 hover:text-sky-700"
+                >
+                  Meu perfil
+                </Link>
+              </div>
             )}
           </div>
         )}

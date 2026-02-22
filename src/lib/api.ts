@@ -43,6 +43,8 @@ export const auth = {
       body: JSON.stringify({ email, senha }),
     }),
   me: () => api<Usuario>('/auth/me'),
+  updateMe: (data: { nome?: string; avatar?: string | null }) =>
+    api<Usuario>('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 // Usuários — API retorna { dados: Usuario[], total, page, limit }
@@ -167,7 +169,8 @@ export interface Usuario {
   email: string;
   role: Role;
   ativo?: boolean;
-  avatar?: string;
+  /** Data URL (ex.: data:image/jpeg;base64,...) ou null quando sem foto */
+  avatar?: string | null;
 }
 
 export interface Post {
