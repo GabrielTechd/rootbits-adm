@@ -33,8 +33,11 @@ function normalizarLista(c: unknown): ClienteResumo[] {
 
 const CORES = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
 
+const CHART_HEIGHT = 288;
+
 export default function DashboardPage() {
   const { can } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [stats, setStats] = useState<{
     usuarios?: number;
     posts?: number;
@@ -47,6 +50,13 @@ export default function DashboardPage() {
   }>({});
   const [clientesPorStatus, setClientesPorStatus] = useState<{ name: string; value: number }[]>([]);
   const [chamadosPorStatus, setChamadosPorStatus] = useState<{ name: string; value: number }[]>([]);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -191,8 +201,9 @@ export default function DashboardPage() {
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-800">Resumo geral</h2>
-        <div className="h-72 min-h-[200px] w-full">
-          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+        <div style={{ width: '100%', height: CHART_HEIGHT }}>
+          {mounted && (
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dadosResumo} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -211,6 +222,7 @@ export default function DashboardPage() {
               <Bar dataKey="total" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Total" />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -218,8 +230,9 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">Clientes por status</h2>
           {clientesPorStatus.length > 0 ? (
-            <div className="h-72 min-h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+            <div style={{ width: '100%', height: CHART_HEIGHT }}>
+              {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={clientesPorStatus}
@@ -241,6 +254,7 @@ export default function DashboardPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
           ) : (
             <p className="flex h-72 items-center justify-center text-slate-500">Nenhum dado para exibir</p>
@@ -250,8 +264,9 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">Chamados por status</h2>
           {chamadosPorStatus.length > 0 ? (
-            <div className="h-72 min-h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+            <div style={{ width: '100%', height: CHART_HEIGHT }}>
+              {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={chamadosPorStatus}
@@ -273,6 +288,7 @@ export default function DashboardPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
           ) : (
             <p className="flex h-72 items-center justify-center text-slate-500">Nenhum dado para exibir</p>

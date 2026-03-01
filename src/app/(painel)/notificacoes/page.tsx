@@ -13,6 +13,13 @@ function normalizarLista(n: unknown): Notificacao[] {
   return [];
 }
 
+function sanitizarTextoNotif(text: string | undefined): string {
+  if (!text || typeof text !== 'string') return '';
+  const pareceErro = /width\s*\(\s*-1\s*\)|height\s*\(\s*-1\s*\)|Failed to load resource|\.js:\d+|404\s*\(\)|_rsc=/i.test(text);
+  if (pareceErro) return 'Notificação';
+  return text.length > 120 ? text.slice(0, 117) + '...' : text;
+}
+
 export default function NotificacoesPage() {
   const [list, setList] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,10 +112,10 @@ export default function NotificacoesPage() {
                           className="font-medium text-slate-800 hover:text-[var(--primary)]"
                           onClick={() => !n.lida && marcarLida(n._id)}
                         >
-                          {n.titulo}
+                          {sanitizarTextoNotif(n.titulo)}
                         </Link>
                       ) : (
-                        <span className="font-medium text-slate-800">{n.titulo}</span>
+                        <span className="font-medium text-slate-800">{sanitizarTextoNotif(n.titulo)}</span>
                       )}
                       {!n.lida && (
                         <span className="shrink-0 rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-medium text-white">
@@ -116,7 +123,7 @@ export default function NotificacoesPage() {
                         </span>
                       )}
                     </div>
-                    {n.mensagem && <p className="mt-1 text-sm text-slate-600">{n.mensagem}</p>}
+                    {n.mensagem && <p className="mt-1 text-sm text-slate-600">{sanitizarTextoNotif(n.mensagem)}</p>}
                     <p className="mt-1 text-xs text-slate-400">
                       {n.createdAt ? new Date(n.createdAt).toLocaleString('pt-BR') : ''}
                     </p>

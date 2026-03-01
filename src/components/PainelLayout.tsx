@@ -16,6 +16,14 @@ function normalizarNotificacoes(n: unknown): Notificacao[] {
   return [];
 }
 
+/** Oculta títulos/mensagens que parecem erro de console (ex.: Recharts, 404) */
+function sanitizarTextoNotif(text: string | undefined): string {
+  if (!text || typeof text !== 'string') return '';
+  const pareceErro = /width\s*\(\s*-1\s*\)|height\s*\(\s*-1\s*\)|Failed to load resource|\.js:\d+|404\s*\(\)|_rsc=/i.test(text);
+  if (pareceErro) return 'Notificação';
+  return text.length > 120 ? text.slice(0, 117) + '...' : text;
+}
+
 export function PainelLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -184,8 +192,8 @@ export function PainelLayout({ children }: { children: React.ReactNode }) {
                               onClick={() => handleNotifClick(n)}
                               className={`w-full px-4 py-3 text-left text-sm transition-colors hover:bg-slate-50 ${!n.lida ? 'bg-sky-50/50' : ''}`}
                             >
-                              <p className="font-medium text-slate-800">{n.titulo}</p>
-                              {n.mensagem && <p className="mt-0.5 line-clamp-2 text-slate-600">{n.mensagem}</p>}
+                              <p className="font-medium text-slate-800">{sanitizarTextoNotif(n.titulo)}</p>
+                              {n.mensagem && <p className="mt-0.5 line-clamp-2 text-slate-600">{sanitizarTextoNotif(n.mensagem)}</p>}
                               {n.createdAt && (
                                 <p className="mt-1 text-xs text-slate-400">
                                   {new Date(n.createdAt).toLocaleString('pt-BR')}

@@ -6,8 +6,17 @@ import { contatos as apiContatos, type Contato } from '@/lib/api';
 
 function normalizarLista(c: unknown): Contato[] {
   if (Array.isArray(c)) return c;
-  if (c && typeof c === 'object' && 'dados' in c && Array.isArray((c as { dados: Contato[] }).dados)) return (c as { dados: Contato[] }).dados;
-  if (c && typeof c === 'object' && 'contatos' in c && Array.isArray((c as { contatos: Contato[] }).contatos)) return (c as { contatos: Contato[] }).contatos;
+  if (c && typeof c === 'object') {
+    const o = c as Record<string, unknown>;
+    if (Array.isArray(o.dados)) return o.dados as Contato[];
+    if (Array.isArray(o.contatos)) return o.contatos as Contato[];
+    if (Array.isArray(o.data)) return o.data as Contato[];
+    if (Array.isArray(o.items)) return o.items as Contato[];
+    if (Array.isArray(o.list)) return o.list as Contato[];
+    for (const key of Object.keys(o)) {
+      if (Array.isArray(o[key])) return o[key] as Contato[];
+    }
+  }
   return [];
 }
 
