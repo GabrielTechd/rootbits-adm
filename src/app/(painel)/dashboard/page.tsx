@@ -191,8 +191,8 @@ export default function DashboardPage() {
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-800">Resumo geral</h2>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 min-h-[200px] w-full">
+          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
             <BarChart data={dadosResumo} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -218,8 +218,8 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">Clientes por status</h2>
           {clientesPorStatus.length > 0 ? (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-72 min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                 <PieChart>
                   <Pie
                     data={clientesPorStatus}
@@ -250,8 +250,8 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-slate-800">Chamados por status</h2>
           {chamadosPorStatus.length > 0 ? (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-72 min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                 <PieChart>
                   <Pie
                     data={chamadosPorStatus}

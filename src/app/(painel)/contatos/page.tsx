@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react';
 import { Mail, Check, CheckCheck } from 'lucide-react';
 import { contatos as apiContatos, type Contato } from '@/lib/api';
 
+function normalizarLista(c: unknown): Contato[] {
+  if (Array.isArray(c)) return c;
+  if (c && typeof c === 'object' && 'dados' in c && Array.isArray((c as { dados: Contato[] }).dados)) return (c as { dados: Contato[] }).dados;
+  if (c && typeof c === 'object' && 'contatos' in c && Array.isArray((c as { contatos: Contato[] }).contatos)) return (c as { contatos: Contato[] }).contatos;
+  return [];
+}
+
 export default function ContatosPage() {
   const [list, setList] = useState<Contato[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +24,7 @@ export default function ContatosPage() {
       try {
         const params = filtroLido === '' ? {} : { lido: filtroLido };
         const c = await apiContatos.list(params);
-        setList(Array.isArray(c) ? c : []);
+        setList(normalizarLista(c));
       } catch {
         setList([]);
       } finally {
