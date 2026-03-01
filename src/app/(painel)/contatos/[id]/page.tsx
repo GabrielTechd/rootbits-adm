@@ -8,7 +8,6 @@ import { contatos as apiContatos, type Contato } from '@/lib/api';
 
 export default function ContatoDetalhePage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
   const [contato, setContato] = useState<Contato | null>(null);
   const [loading, setLoading] = useState(true);

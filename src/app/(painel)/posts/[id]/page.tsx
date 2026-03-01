@@ -60,7 +60,7 @@ export default function EditarPostPage() {
 
   const setFormField = <K extends keyof Post>(key: K, value: Post[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  const tagsStr = Array.isArray(form.tags) ? form.tags.join(', ') : (form.tags as string) ?? '';
+  const tagsStr = Array.isArray(form.tags) ? form.tags.join(', ') : (typeof form.tags === 'string' ? form.tags : '');
   const setTagsStr = (s: string) => setFormField('tags', s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
 
   const oQueFoiFeitoList = Array.isArray(form.oQueFoiFeito) ? form.oQueFoiFeito : [];
