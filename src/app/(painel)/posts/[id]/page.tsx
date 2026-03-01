@@ -37,6 +37,8 @@ export default function EditarPostPage() {
           subtitulo: p.subtitulo ?? '',
           descricao: p.descricao ?? '',
           tags: p.tags ?? [],
+          tecnologiasUsadas: p.tecnologiasUsadas ?? [],
+          linkProjeto: p.linkProjeto ?? '',
           desafio: p.desafio ?? '',
           resultado: p.resultado ?? '',
           oQueFoiFeito: p.oQueFoiFeito ?? [],
@@ -62,6 +64,8 @@ export default function EditarPostPage() {
 
   const tagsStr = Array.isArray(form.tags) ? form.tags.join(', ') : (typeof form.tags === 'string' ? form.tags : '');
   const setTagsStr = (s: string) => setFormField('tags', s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
+  const tecnologiasStr = Array.isArray(form.tecnologiasUsadas) ? form.tecnologiasUsadas.join(', ') : (typeof form.tecnologiasUsadas === 'string' ? form.tecnologiasUsadas : '');
+  const setTecnologiasStr = (s: string) => setFormField('tecnologiasUsadas', s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
 
   const oQueFoiFeitoList = Array.isArray(form.oQueFoiFeito) ? form.oQueFoiFeito : [];
   const addOQueFoiFeito = () => setFormField('oQueFoiFeito', [...oQueFoiFeitoList, '']);
@@ -96,6 +100,8 @@ export default function EditarPostPage() {
         imagemPrincipal: imagemPrincipal || undefined,
         imagensAdicionais: imagensAdicionais.length ? imagensAdicionais : undefined,
         tags: Array.isArray(form.tags) && form.tags.length ? form.tags : undefined,
+        tecnologiasUsadas: Array.isArray(form.tecnologiasUsadas) && form.tecnologiasUsadas.length ? form.tecnologiasUsadas : undefined,
+        linkProjeto: form.linkProjeto?.trim() || undefined,
         oQueFoiFeito: oQueFoiFeitoList.filter(Boolean).length ? oQueFoiFeitoList.filter(Boolean) : undefined,
         ordem: form.ordem ?? 0,
         clienteRef: form.clienteRef || undefined,
@@ -166,6 +172,26 @@ export default function EditarPostPage() {
                 onChange={(e) => setTagsStr(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 placeholder="E-commerce, UX, SEO"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Tecnologias usadas</label>
+              <input
+                type="text"
+                value={tecnologiasStr}
+                onChange={(e) => setTecnologiasStr(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                placeholder="React, Next.js, MongoDB"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Link do projeto</label>
+              <input
+                type="url"
+                value={form.linkProjeto ?? ''}
+                onChange={(e) => setFormField('linkProjeto', e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                placeholder="https://loja-exemplo.com.br"
               />
             </div>
           </div>

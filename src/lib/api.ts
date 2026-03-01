@@ -181,6 +181,8 @@ export interface Post {
   imagemPrincipal?: string;
   imagensAdicionais?: string[];
   tags?: string[];
+  tecnologiasUsadas?: string[];
+  linkProjeto?: string;
   desafio?: string;
   resultado?: string;
   oQueFoiFeito?: string[];
