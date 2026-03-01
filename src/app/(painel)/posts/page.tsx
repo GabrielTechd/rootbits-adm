@@ -77,7 +77,7 @@ export default function PostsPage() {
             href="/posts/novo"
             className="flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
           >
-            <Plus className="h-4 w-4" /> Novo post
+            <Plus className="h-4 w-4" /> Novo estudo de caso
           </Link>
         )}
       </div>

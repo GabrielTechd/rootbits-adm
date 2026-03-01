@@ -176,12 +176,18 @@ export interface Usuario {
 export interface Post {
   _id: string;
   titulo: string;
+  subtitulo?: string;
   descricao?: string;
   imagemPrincipal?: string;
   imagensAdicionais?: string[];
+  tags?: string[];
+  desafio?: string;
+  resultado?: string;
+  oQueFoiFeito?: string[];
+  ctaTexto?: string;
+  ctaLinkTexto?: string;
   publicado?: boolean;
   ordem?: number;
-  tags?: string[];
   clienteRef?: string;
   createdAt?: string;
 }
