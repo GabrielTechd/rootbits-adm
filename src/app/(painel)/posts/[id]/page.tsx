@@ -48,6 +48,8 @@ export default function EditarPostPage() {
           ordem: p.ordem ?? 0,
           clienteRef: p.clienteRef ?? undefined,
         });
+        setTagsInput(Array.isArray(p.tags) ? p.tags.join(', ') : (typeof p.tags === 'string' ? p.tags : ''));
+        setTecnologiasInput(Array.isArray(p.tecnologiasUsadas) ? p.tecnologiasUsadas.join(', ') : (typeof p.tecnologiasUsadas === 'string' ? p.tecnologiasUsadas : ''));
         setImagemPrincipal(p.imagemPrincipal ?? '');
         setImagensAdicionais(p.imagensAdicionais ?? []);
         setClientes(normalizarClientes(c));
@@ -62,10 +64,9 @@ export default function EditarPostPage() {
 
   const setFormField = <K extends keyof Post>(key: K, value: Post[K]) => setForm((f) => ({ ...f, [key]: value }));
 
-  const tagsStr = Array.isArray(form.tags) ? form.tags.join(', ') : (typeof form.tags === 'string' ? form.tags : '');
-  const setTagsStr = (s: string) => setFormField('tags', s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
-  const tecnologiasStr = Array.isArray(form.tecnologiasUsadas) ? form.tecnologiasUsadas.join(', ') : (typeof form.tecnologiasUsadas === 'string' ? form.tecnologiasUsadas : '');
-  const setTecnologiasStr = (s: string) => setFormField('tecnologiasUsadas', s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
+  const [tagsInput, setTagsInput] = useState('');
+  const [tecnologiasInput, setTecnologiasInput] = useState('');
+  const parseListStr = (s: string) => (s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
 
   const oQueFoiFeitoList = Array.isArray(form.oQueFoiFeito) ? form.oQueFoiFeito : [];
   const addOQueFoiFeito = () => setFormField('oQueFoiFeito', [...oQueFoiFeitoList, '']);
@@ -99,8 +100,8 @@ export default function EditarPostPage() {
         descricao: form.descricao || undefined,
         imagemPrincipal: imagemPrincipal || undefined,
         imagensAdicionais: imagensAdicionais.length ? imagensAdicionais : undefined,
-        tags: Array.isArray(form.tags) && form.tags.length ? form.tags : undefined,
-        tecnologiasUsadas: Array.isArray(form.tecnologiasUsadas) && form.tecnologiasUsadas.length ? form.tecnologiasUsadas : undefined,
+        tags: parseListStr(tagsInput).length ? parseListStr(tagsInput) : undefined,
+        tecnologiasUsadas: parseListStr(tecnologiasInput).length ? parseListStr(tecnologiasInput) : undefined,
         linkProjeto: form.linkProjeto?.trim() || undefined,
         oQueFoiFeito: oQueFoiFeitoList.filter(Boolean).length ? oQueFoiFeitoList.filter(Boolean) : undefined,
         ordem: form.ordem ?? 0,
@@ -168,21 +169,23 @@ export default function EditarPostPage() {
               <label className="block text-sm font-medium text-slate-700">Tags</label>
               <input
                 type="text"
-                value={tagsStr}
-                onChange={(e) => setTagsStr(e.target.value)}
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 placeholder="E-commerce, UX, SEO"
               />
+              <p className="mt-1 text-xs text-slate-500">Separe por vírgula (ex.: E-commerce, UX, SEO)</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Tecnologias usadas</label>
               <input
                 type="text"
-                value={tecnologiasStr}
-                onChange={(e) => setTecnologiasStr(e.target.value)}
+                value={tecnologiasInput}
+                onChange={(e) => setTecnologiasInput(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 placeholder="React, Next.js, MongoDB"
               />
+              <p className="mt-1 text-xs text-slate-500">Separe por vírgula (ex.: React, Next.js, MongoDB)</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Link do projeto</label>
