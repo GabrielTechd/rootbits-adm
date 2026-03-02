@@ -35,9 +35,20 @@ const CORES = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899',
 
 const CHART_HEIGHT = 288;
 
+function getTotalFromResponse(r: unknown, dadosKey = 'dados'): number {
+  if (r == null) return 0;
+  if (typeof r !== 'object') return 0;
+  const o = r as Record<string, unknown>;
+  if (typeof o.total === 'number') return o.total;
+  if (Array.isArray(o[dadosKey])) return (o[dadosKey] as unknown[]).length;
+  if (Array.isArray(o.chamados)) return (o.chamados as unknown[]).length;
+  return Array.isArray(r) ? (r as unknown[]).length : 0;
+}
+
 export default function DashboardPage() {
   const { can } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{
     usuarios?: number;
     posts?: number;
@@ -60,12 +71,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
         const [u, p, c, ch, co, n] = await Promise.all([
-          can(['admin', 'ceo']) ? usuarios.list() : Promise.resolve([]),
-          can(['admin', 'ceo', 'programador', 'designer']) ? posts.list() : Promise.resolve({ dados: [], total: 0 }),
-          clientes.list(),
-          chamados.list(),
+          can(['admin', 'ceo']) ? usuarios.list({ limit: 5000 }) : Promise.resolve(null),
+          can(['admin', 'ceo', 'programador', 'designer']) ? posts.list({ limit: 5000 }) : Promise.resolve(null),
+          clientes.list({ limit: 5000 }),
+          chamados.list({ limit: 5000 }),
           contatos.unreadCount(),
           notificacoes.unreadCount(),
         ]);
@@ -73,10 +85,10 @@ export default function DashboardPage() {
         const listaClientes = normalizarLista(c);
         const listaChamados = normalizarLista(ch);
 
-        const totalUsuarios = typeof u === 'object' && u && 'dados' in u ? (u as { dados: unknown[] }).dados.length : (typeof u === 'object' && u && 'total' in u ? (u as { total: number }).total : (Array.isArray(u) ? u.length : 0));
-        const totalPosts = typeof p === 'object' && p && ('dados' in p || 'total' in p) ? ((p as { dados?: unknown[] }).dados?.length ?? (p as { total: number }).total ?? 0) : 0;
-        const totalClientes = listaClientes.length;
-        const totalChamados = listaChamados.length;
+        const totalUsuarios = u != null ? getTotalFromResponse(u) : 0;
+        const totalPosts = p != null ? getTotalFromResponse(p) : 0;
+        const totalClientes = c != null ? getTotalFromResponse(c) : listaClientes.length;
+        const totalChamados = ch != null ? getTotalFromResponse(ch, 'chamados') : listaChamados.length;
 
         const totalVendas = listaClientes.reduce((acc, cli) => acc + (Number(cli.preco) || 0), 0);
         const totalRecebido = listaClientes.reduce((acc, cli) => acc + (Number(cli.precoPago) || 0), 0);
@@ -113,6 +125,8 @@ export default function DashboardPage() {
         setStats({});
         setClientesPorStatus([]);
         setChamadosPorStatus([]);
+      } finally {
+        setLoading(false);
       }
     };
     load();
@@ -137,6 +151,15 @@ export default function DashboardPage() {
     { nome: 'Contatos (não lidos)', total: stats.contatosNaoLidos ?? 0, link: '/contatos' },
     { nome: 'Notificações (não lidas)', total: stats.notifNaoLidas ?? 0, link: '/notificacoes' },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+        <p className="mt-4 text-sm text-slate-500">Carregando dados do sistema...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

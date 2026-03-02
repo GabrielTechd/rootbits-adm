@@ -160,6 +160,8 @@ export const notificacoes = {
     api<void>(`/notificacoes/${id}/marcar-lida`, { method: 'PUT' }),
   marcarTodasLidas: () =>
     api<void>('/notificacoes/marcar-todas-lidas', { method: 'PUT' }),
+  delete: (id: string) =>
+    api<void>(`/notificacoes/${id}`, { method: 'DELETE' }),
 };
 
 // Types
