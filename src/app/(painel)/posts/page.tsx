@@ -90,52 +90,93 @@ export default function PostsPage() {
         ) : list.length === 0 ? (
           <div className="py-12 text-center text-slate-500">Nenhum post cadastrado.</div>
         ) : (
-          <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((post) => (
-              <div
-                key={post._id}
-                className="overflow-hidden rounded-xl border border-[var(--border)] bg-white transition-shadow hover:shadow-md"
-              >
-                <div className="aspect-video bg-slate-100">
-                  {post.imagemPrincipal ? (
-                    <img
-                      src={post.imagemPrincipal}
-                      alt={post.titulo}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-slate-400">
-                      <ImageIcon className="h-12 w-12" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-slate-800 line-clamp-1">{post.titulo}</h3>
-                  <p className="mt-1 text-sm text-slate-500 line-clamp-2">{post.descricao}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    {canEdit && (
-                      <Link
-                        href={`/posts/${post._id}`}
-                        className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    )}
-                    {canDelete && (
-                      <button
-                        type="button"
-                        onClick={() => openExcluir(post)}
-                        className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                        title="Excluir"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)] bg-slate-50/80 text-left text-sm text-slate-600">
+                  <th className="w-16 px-4 py-3 font-medium">Imagem</th>
+                  <th className="px-6 py-3 font-medium">Título</th>
+                  <th className="hidden px-6 py-3 font-medium md:table-cell">Descrição</th>
+                  <th className="px-6 py-3 font-medium">Publicado</th>
+                  <th className="px-6 py-3 font-medium">Data</th>
+                  <th className="w-0 px-4 py-3" aria-label="Ações" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {list.map((post) => (
+                  <tr key={post._id} className="transition-colors hover:bg-slate-50">
+                    <td className="px-4 py-3">
+                      {canEdit ? (
+                        <Link href={`/posts/${post._id}`} className="block w-12 overflow-hidden rounded bg-slate-100">
+                          {post.imagemPrincipal ? (
+                            <img src={post.imagemPrincipal} alt="" className="h-12 w-12 object-cover" />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center text-slate-400">
+                              <ImageIcon className="h-6 w-6" />
+                            </div>
+                          )}
+                        </Link>
+                      ) : (
+                        <div className="block w-12 overflow-hidden rounded bg-slate-100">
+                          {post.imagemPrincipal ? (
+                            <img src={post.imagemPrincipal} alt="" className="h-12 w-12 object-cover" />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center text-slate-400">
+                              <ImageIcon className="h-6 w-6" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-3">
+                      {canEdit ? (
+                        <Link href={`/posts/${post._id}`} className="font-medium text-slate-800 hover:text-[var(--primary)] hover:underline">
+                          {post.titulo}
+                        </Link>
+                      ) : (
+                        <span className="font-medium text-slate-800">{post.titulo}</span>
+                      )}
+                    </td>
+                    <td className="hidden max-w-[240px] truncate px-6 py-3 text-sm text-slate-500 md:table-cell">
+                      {post.descricao || '—'}
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${post.publicado ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                        {post.publicado ? 'Sim' : 'Não'}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-3 text-sm text-slate-500">
+                      {post.createdAt ? new Date(post.createdAt).toLocaleString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {canEdit && (
+                          <Link
+                            href={`/posts/${post._id}`}
+                            className="rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                            title="Editar"
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={() => openExcluir(post)}
+                            className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                            title="Excluir"
+                            aria-label="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
