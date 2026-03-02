@@ -1,17 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Check } from 'lucide-react';
+import { ArrowLeft, Mail, Check, Trash2 } from 'lucide-react';
 import { contatos as apiContatos, type Contato } from '@/lib/api';
+
+const CONFIRMAR_EXCLUSAO = 'EXCLUIR';
 
 export default function ContatoDetalhePage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [contato, setContato] = useState<Contato | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [modalExcluir, setModalExcluir] = useState(false);
+  const [confirmacaoExcluir, setConfirmacaoExcluir] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
+  const [errorExcluir, setErrorExcluir] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -30,6 +37,31 @@ export default function ContatoDetalhePage() {
     };
     load();
   }, [id]);
+
+  const openExcluir = () => {
+    setModalExcluir(true);
+    setConfirmacaoExcluir('');
+    setErrorExcluir('');
+  };
+
+  const closeExcluir = () => {
+    setModalExcluir(false);
+    setConfirmacaoExcluir('');
+  };
+
+  const handleExcluir = async () => {
+    if (!contato || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO) return;
+    setExcluindo(true);
+    setErrorExcluir('');
+    try {
+      await apiContatos.delete(contato._id);
+      router.push('/contatos');
+    } catch (e) {
+      setErrorExcluir(e instanceof Error ? e.message : 'Erro ao excluir');
+    } finally {
+      setExcluindo(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -59,19 +91,29 @@ export default function ContatoDetalhePage() {
       </Link>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-            <Mail className="h-6 w-6" />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+              <Mail className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-800">{contato.nome}</h1>
+              <p className="text-slate-600">{contato.email}</p>
+              {contato.lido && (
+                <span className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600">
+                  <Check className="h-3.5 w-3.5" /> Lido
+                </span>
+              )}
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">{contato.nome}</h1>
-            <p className="text-slate-600">{contato.email}</p>
-            {contato.lido && (
-              <span className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600">
-                <Check className="h-3.5 w-3.5" /> Lido
-              </span>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={openExcluir}
+            className="rounded p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+            title="Excluir"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
 
         <dl className="space-y-4">
@@ -92,6 +134,50 @@ export default function ContatoDetalhePage() {
           )}
         </dl>
       </div>
+
+      {modalExcluir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-slate-800">Excluir mensagem</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Tem certeza que deseja excluir a mensagem de <strong>{contato.nome}</strong> ({contato.email})? Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Digite <strong>EXCLUIR</strong> para confirmar
+              </label>
+              <input
+                type="text"
+                value={confirmacaoExcluir}
+                onChange={(e) => setConfirmacaoExcluir(e.target.value)}
+                placeholder="EXCLUIR"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                autoComplete="off"
+              />
+            </div>
+            {errorExcluir && (
+              <div className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorExcluir}</div>
+            )}
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeExcluir}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExcluir}
+                disabled={excluindo || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {excluindo ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, Check, CheckCheck } from 'lucide-react';
+import { Mail, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { contatos as apiContatos, type Contato } from '@/lib/api';
+
+const CONFIRMAR_EXCLUSAO = 'EXCLUIR';
 
 function normalizarLista(c: unknown): Contato[] {
   if (Array.isArray(c)) return c;
@@ -26,6 +28,10 @@ export default function ContatosPage() {
   const [filtroLido, setFiltroLido] = useState<boolean | ''>('');
   const [detalhe, setDetalhe] = useState<Contato | null>(null);
   const [marcando, setMarcando] = useState(false);
+  const [modalExcluir, setModalExcluir] = useState<{ open: boolean; contato: Contato | null }>({ open: false, contato: null });
+  const [confirmacaoExcluir, setConfirmacaoExcluir] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
+  const [errorExcluir, setErrorExcluir] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -68,6 +74,34 @@ export default function ContatosPage() {
   const verDetalhe = async (c: Contato) => {
     setDetalhe(c);
     if (!c.lido) await marcarLido(c._id);
+  };
+
+  const openExcluir = (c: Contato, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setModalExcluir({ open: true, contato: c });
+    setConfirmacaoExcluir('');
+    setErrorExcluir('');
+  };
+
+  const closeExcluir = () => {
+    setModalExcluir({ open: false, contato: null });
+    setConfirmacaoExcluir('');
+  };
+
+  const handleExcluir = async () => {
+    if (!modalExcluir.contato || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO) return;
+    setExcluindo(true);
+    setErrorExcluir('');
+    try {
+      await apiContatos.delete(modalExcluir.contato._id);
+      setList((prev) => prev.filter((c) => c._id !== modalExcluir.contato!._id));
+      if (detalhe?._id === modalExcluir.contato._id) setDetalhe(null);
+      closeExcluir();
+    } catch (e) {
+      setErrorExcluir(e instanceof Error ? e.message : 'Erro ao excluir');
+    } finally {
+      setExcluindo(false);
+    }
   };
 
   return (
@@ -130,6 +164,15 @@ export default function ContatosPage() {
                         {c.createdAt ? new Date(c.createdAt).toLocaleString('pt-BR') : ''}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => openExcluir(c, e)}
+                      className="shrink-0 rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                      title="Excluir"
+                      aria-label="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </li>
               ))}
@@ -140,7 +183,17 @@ export default function ContatosPage() {
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
           {detalhe ? (
             <div>
-              <h2 className="text-lg font-semibold text-slate-800">Mensagem</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">Mensagem</h2>
+                <button
+                  type="button"
+                  onClick={() => openExcluir(detalhe)}
+                  className="rounded p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                  title="Excluir"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
               <dl className="mt-4 space-y-3">
                 <div>
                   <dt className="text-xs font-medium uppercase text-slate-500">Nome</dt>
@@ -171,6 +224,50 @@ export default function ContatosPage() {
           )}
         </div>
       </div>
+
+      {modalExcluir.open && modalExcluir.contato && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl">
+            <h2 className="text-lg font-semibold text-slate-800">Excluir mensagem</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Tem certeza que deseja excluir a mensagem de <strong>{modalExcluir.contato.nome}</strong> ({modalExcluir.contato.email})? Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-slate-700">
+                Digite <strong>EXCLUIR</strong> para confirmar
+              </label>
+              <input
+                type="text"
+                value={confirmacaoExcluir}
+                onChange={(e) => setConfirmacaoExcluir(e.target.value)}
+                placeholder="EXCLUIR"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                autoComplete="off"
+              />
+            </div>
+            {errorExcluir && (
+              <div className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorExcluir}</div>
+            )}
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeExcluir}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleExcluir}
+                disabled={excluindo || confirmacaoExcluir !== CONFIRMAR_EXCLUSAO}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {excluindo ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

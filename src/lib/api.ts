@@ -145,6 +145,8 @@ export const contatos = {
     api<void>('/contatos/marcar-todos-lidos', { method: 'PUT' }),
   update: (id: string, data: Partial<Contato>) =>
     api<Contato>(`/contatos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    api<void>(`/contatos/${id}`, { method: 'DELETE' }),
 };
 
 // Notificações — API pode retornar array ou { dados: Notificacao[] }
