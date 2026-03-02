@@ -19,6 +19,7 @@ export default function ContatoDetalhePage() {
   const [confirmacaoExcluir, setConfirmacaoExcluir] = useState('');
   const [excluindo, setExcluindo] = useState(false);
   const [errorExcluir, setErrorExcluir] = useState('');
+  const [atualizandoStatus, setAtualizandoStatus] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +28,7 @@ export default function ContatoDetalhePage() {
         setContato(c);
         if (!c.lido) {
           await apiContatos.marcarLido(id);
+          setContato((prev) => (prev ? { ...prev, lido: true } : null));
         }
       } catch {
         setContato(null);
@@ -37,6 +39,28 @@ export default function ContatoDetalhePage() {
     };
     load();
   }, [id]);
+
+  const toggleLido = async () => {
+    if (!contato) return;
+    setAtualizandoStatus(true);
+    try {
+      const atualizado = await apiContatos.update(contato._id, { lido: !contato.lido });
+      setContato(atualizado);
+    } finally {
+      setAtualizandoStatus(false);
+    }
+  };
+
+  const toggleRespondido = async () => {
+    if (!contato) return;
+    setAtualizandoStatus(true);
+    try {
+      const atualizado = await apiContatos.update(contato._id, { respondido: !contato.respondido });
+      setContato(atualizado);
+    } finally {
+      setAtualizandoStatus(false);
+    }
+  };
 
   const openExcluir = () => {
     setModalExcluir(true);
@@ -99,13 +123,9 @@ export default function ContatoDetalhePage() {
             <div>
               <h1 className="text-xl font-bold text-slate-800">{contato.nome}</h1>
               <p className="text-slate-600">{contato.email}</p>
-              {contato.lido && (
-                <span className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600">
-                  <Check className="h-3.5 w-3.5" /> Lido
-                </span>
-              )}
             </div>
           </div>
+
           <button
             type="button"
             onClick={openExcluir}
@@ -114,6 +134,30 @@ export default function ContatoDetalhePage() {
           >
             <Trash2 className="h-4 w-4" />
           </button>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-4 border-y border-slate-100 py-4">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={!!contato.lido}
+              onChange={toggleLido}
+              disabled={atualizandoStatus}
+              className="h-4 w-4 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            <span className="text-sm font-medium text-slate-700">Lido</span>
+            {contato.lido && <Check className="h-4 w-4 text-emerald-600" />}
+          </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={!!contato.respondido}
+              onChange={toggleRespondido}
+              disabled={atualizandoStatus}
+              className="h-4 w-4 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+            />
+            <span className="text-sm font-medium text-slate-700">Respondido</span>
+          </label>
         </div>
 
         <dl className="space-y-4">
@@ -127,6 +171,12 @@ export default function ContatoDetalhePage() {
             <dt className="text-xs font-medium uppercase text-slate-500">Mensagem</dt>
             <dd className="mt-1 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-slate-700">{contato.mensagem}</dd>
           </div>
+          {contato.observacao && (
+            <div>
+              <dt className="text-xs font-medium uppercase text-slate-500">Observação</dt>
+              <dd className="mt-1 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-slate-700">{contato.observacao}</dd>
+            </div>
+          )}
           {contato.createdAt && (
             <div className="text-xs text-slate-500">
               {new Date(contato.createdAt).toLocaleString('pt-BR')}

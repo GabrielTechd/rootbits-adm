@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, Check, CheckCheck, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { Mail, Check, CheckCheck, Trash2, MessageSquare } from 'lucide-react';
 import { contatos as apiContatos, type Contato } from '@/lib/api';
 
 const CONFIRMAR_EXCLUSAO = 'EXCLUIR';
@@ -26,7 +27,6 @@ export default function ContatosPage() {
   const [list, setList] = useState<Contato[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroLido, setFiltroLido] = useState<boolean | ''>('');
-  const [detalhe, setDetalhe] = useState<Contato | null>(null);
   const [marcando, setMarcando] = useState(false);
   const [modalExcluir, setModalExcluir] = useState<{ open: boolean; contato: Contato | null }>({ open: false, contato: null });
   const [confirmacaoExcluir, setConfirmacaoExcluir] = useState('');
@@ -49,35 +49,19 @@ export default function ContatosPage() {
     load();
   }, [filtroLido]);
 
-  const marcarLido = async (id: string) => {
-    setMarcando(true);
-    try {
-      await apiContatos.marcarLido(id);
-      setList((prev) => prev.map((c) => (c._id === id ? { ...c, lido: true } : c)));
-      if (detalhe?._id === id) setDetalhe((d) => (d ? { ...d, lido: true } : null));
-    } finally {
-      setMarcando(false);
-    }
-  };
-
   const marcarTodosLidos = async () => {
     setMarcando(true);
     try {
       await apiContatos.marcarTodosLidos();
       setList((prev) => prev.map((c) => ({ ...c, lido: true })));
-      if (detalhe) setDetalhe((d) => (d ? { ...d, lido: true } : null));
     } finally {
       setMarcando(false);
     }
   };
 
-  const verDetalhe = async (c: Contato) => {
-    setDetalhe(c);
-    if (!c.lido) await marcarLido(c._id);
-  };
-
-  const openExcluir = (c: Contato, e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const openExcluir = (c: Contato, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setModalExcluir({ open: true, contato: c });
     setConfirmacaoExcluir('');
     setErrorExcluir('');
@@ -95,7 +79,6 @@ export default function ContatosPage() {
     try {
       await apiContatos.delete(modalExcluir.contato._id);
       setList((prev) => prev.filter((c) => c._id !== modalExcluir.contato!._id));
-      if (detalhe?._id === modalExcluir.contato._id) setDetalhe(null);
       closeExcluir();
     } catch (e) {
       setErrorExcluir(e instanceof Error ? e.message : 'Erro ao excluir');
@@ -129,100 +112,89 @@ export default function ContatosPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
-            </div>
-          ) : list.length === 0 ? (
-            <div className="py-12 text-center text-slate-500">Nenhuma mensagem.</div>
-          ) : (
-            <ul className="divide-y divide-[var(--border)]">
-              {list.map((c) => (
-                <li
-                  key={c._id}
-                  className={`cursor-pointer px-6 py-4 transition-colors hover:bg-slate-50 ${detalhe?._id === c._id ? 'bg-sky-50' : ''} ${!c.lido ? 'bg-amber-50/50' : ''}`}
-                  onClick={() => verDetalhe(c)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                      <Mail className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-800 truncate">{c.nome}</span>
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+          </div>
+        ) : list.length === 0 ? (
+          <div className="py-12 text-center text-slate-500">Nenhuma mensagem.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)] bg-slate-50/80 text-left text-sm text-slate-600">
+                  <th className="px-6 py-3 font-medium">Nome</th>
+                  <th className="px-6 py-3 font-medium">E-mail</th>
+                  <th className="hidden px-6 py-3 font-medium sm:table-cell">Trecho</th>
+                  <th className="px-6 py-3 font-medium">Data</th>
+                  <th className="px-6 py-3 font-medium">Status</th>
+                  <th className="w-0 px-4 py-3" aria-label="Ações" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {list.map((c) => (
+                  <tr
+                    key={c._id}
+                    className={`transition-colors hover:bg-slate-50 ${!c.lido ? 'bg-amber-50/50' : ''}`}
+                  >
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/contatos/${c._id}`}
+                        className="font-medium text-slate-800 hover:text-[var(--primary)] hover:underline"
+                      >
+                        {c.nome}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      <Link href={`/contatos/${c._id}`} className="hover:text-[var(--primary)] hover:underline">
+                        {c.email}
+                      </Link>
+                    </td>
+                    <td className="hidden max-w-[200px] truncate px-6 py-4 text-sm text-slate-500 sm:table-cell">
+                      <Link href={`/contatos/${c._id}`} className="block truncate hover:text-[var(--primary)]">
+                        {c.mensagem || '—'}
+                      </Link>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                      {c.createdAt ? new Date(c.createdAt).toLocaleString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
                         {!c.lido && (
-                          <span className="shrink-0 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-medium text-white">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-medium text-white">
                             Novo
                           </span>
                         )}
+                        {c.lido && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                            <Check className="h-3 w-3" /> Lido
+                          </span>
+                        )}
+                        {c.respondido && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-700">
+                            <MessageSquare className="h-3 w-3" /> Respondido
+                          </span>
+                        )}
                       </div>
-                      <p className="mt-0.5 truncate text-sm text-slate-600">{c.email}</p>
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{c.mensagem}</p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        {c.createdAt ? new Date(c.createdAt).toLocaleString('pt-BR') : ''}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => openExcluir(c, e)}
-                      className="shrink-0 rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                      title="Excluir"
-                      aria-label="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-          {detalhe ? (
-            <div>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800">Mensagem</h2>
-                <button
-                  type="button"
-                  onClick={() => openExcluir(detalhe)}
-                  className="rounded p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-              <dl className="mt-4 space-y-3">
-                <div>
-                  <dt className="text-xs font-medium uppercase text-slate-500">Nome</dt>
-                  <dd className="text-slate-800">{detalhe.nome}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase text-slate-500">E-mail</dt>
-                  <dd className="text-slate-800">{detalhe.email}</dd>
-                </div>
-                {detalhe.telefone && (
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-slate-500">Telefone</dt>
-                    <dd className="text-slate-800">{detalhe.telefone}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-xs font-medium uppercase text-slate-500">Mensagem</dt>
-                  <dd className="mt-1 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-slate-700">{detalhe.mensagem}</dd>
-                </div>
-                <div className="flex gap-2 text-xs text-slate-500">
-                  {detalhe.lido && <span className="flex items-center gap-1 text-emerald-600"><Check className="h-3 w-3" /> Lido</span>}
-                  {detalhe.createdAt && <span>{new Date(detalhe.createdAt).toLocaleString('pt-BR')}</span>}
-                </div>
-              </dl>
-            </div>
-          ) : (
-            <p className="text-center text-slate-500">Selecione uma mensagem para ver o conteúdo.</p>
-          )}
-        </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        type="button"
+                        onClick={(e) => openExcluir(c, e)}
+                        className="rounded p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                        title="Excluir"
+                        aria-label="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {modalExcluir.open && modalExcluir.contato && (
